@@ -1,0 +1,2150 @@
+---
+title: "Longitudinal Immigration Database (IMDB) 2021 Summary Report B.C."
+author: Prepared by LMIRE Branch of B.C. Public Service Ministry of Post-Secondary Education and Future Skills 
+output: 
+  bookdown::html_document2:
+        number_sections: false
+
+ 
+date: "2024-02-14"
+
+---
+```{r setup1, include=FALSE}
+# webshot::install_phantomjs()
+
+local({r <- getOption("repos")
+       r["CRAN"] <- "http://cran.r-project.org"
+       options(repos=r)})
+
+library(tidyverse)
+library(stargazer)
+library(janitor)
+library(plotly)
+library(ggplot2)
+library(jsonlite)
+```
+
+```{r, include=FALSE}
+
+# read JSON data
+fromJSON(txt = "IMDB_2021_24_02_bookdown.json")
+
+```
+
+<style>
+p.caption {
+  font-size: 1.3em;
+}
+
+th, td {
+    padding-left: 10px;
+}
+</style>
+
+
+```{css, echo=FALSE}
+.footnotes-list {
+  list-style-type: lower-roman;
+}
+
+```
+
+```{css 2, echo=FALSE}
+.table caption {
+    color: black;
+    font-weight: bold;
+}
+```
+
+
+```{r setup II, include=FALSE, eval=TRUE}
+knitr::opts_chunk$set(eval = TRUE, collapse = TRUE,warning = FALSE, message = FALSE,
+  comment = ">",
+  out.width = "100%")
+```
+
+```{r echo=FALSE}
+#Determine the output format of the document
+outputFormat   = knitr::opts_knit$get("rmarkdown.pandoc.to")
+
+#Figure and Table Caption Numbering, for HTML do it manually
+capFigNo = 1;
+capTabNo = 1;
+#
+#Function to add the Table Number
+capTab = function(x){
+  if(outputFormat == 'html'){
+    x = paste0("Table ",capTabNo,". ",x)
+    capTabNo <<- capTabNo + 1
+  }; x
+}
+
+# #Function to add the Figure Number
+# capFig = function(x){
+#   if(outputFormat == 'html'){
+#     x = paste0("**Figure**"," ","**", capFigNo,"**", ". ",x)
+#     capFigNo <<- capFigNo + 1
+#   }; x
+# }
+```
+
+```{r setup, include=FALSE}
+
+
+download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002901&latestN=0&startDate=20120101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B75%2C76%2C77%2C78%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%5D%5D&checkedLevels=1D1%2C2D1%2C3D1%2C5D1", "data/imdb_reg.csv")
+imdb_reg <- read_csv("data/imdb_reg.csv")%>%  clean_names() %>% 
+  mutate(admission_year=str_remove(admission_year, ", admission year"),
+         years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
+         years_since=factor(years_since,
+                       levels = unique(as.numeric(years_since))),
+         ref_date=as.character(ref_date)) %>% 
+  filter(sex=="Total, sex", ref_date>=2012) 
+
+ download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002701&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B5%2C7%2C8%2C9%2C10%5D%2C%5B1%2C2%2C9%5D%5D&checkedLevels=1D1%2C2D1%2C2D2", "data/imdb_age.csv")
+imdb_age <- read_csv("data/imdb_age.csv")%>%  clean_names() %>% 
+  mutate(admission_year=str_remove(admission_year, ", admission year"),
+         years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
+         years_since=factor(years_since,
+                       levels = unique(as.numeric(years_since))),
+         ref_date=as.character(ref_date)) %>% 
+  filter(ref_date>=2012) 
+
+ download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002701&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B17%2C18%2C19%2C20%2C21%2C22%2C23%2C24%2C25%2C26%2C27%2C28%2C29%2C30%2C31%2C32%2C33%2C34%2C35%2C36%2C37%2C38%2C39%2C40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49%2C50%2C51%5D%2C%5B1%2C2%2C9%5D%5D&checkedLevels=1D1%2C2D1%2C2D2", "data/imdb_orig.csv")
+imdb_orig <- read_csv("data/imdb_orig.csv")%>%  clean_names() %>% 
+  mutate(admission_year=str_remove(admission_year, ", admission year"),
+         years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
+         years_since=factor(years_since,
+                       levels = unique(as.numeric(years_since))),
+         ref_date=as.character(ref_date)) %>% 
+  filter(ref_date>=2012) 
+
+
+ download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002601&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%2C6%5D%5D&checkedLevels=1D1%2C2D1%2C2D2%2C3D1%2C5D1", "data/imdb_exp.csv")
+ imdb_exp <- read_csv("data/imdb_exp.csv")%>%  clean_names() %>% 
+  mutate(admission_year=str_remove(admission_year, ", admission year"),
+         years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
+         years_since=factor(years_since,
+                       levels = unique(as.numeric(years_since))),
+         ref_date=as.character(ref_date)) %>% 
+  filter(sex=="Total, sex", ref_date>=2012) 
+
+
+
+download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002601&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%2C6%5D%5D&checkedLevels=0D1%2C1D1%2C1D2%2C2D1%2C3D1%2C5D1%2C5D2","data/imdb_cat.csv")
+
+imdb_cat_s <- read_csv("data/imdb_cat.csv")%>%  
+ clean_names() %>% 
+  mutate(admission_year=str_remove(admission_year, ", admission year"),
+         years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
+          years_since=factor(years_since,
+                       levels = unique(as.numeric(years_since))),
+         ref_date=as.character(ref_date)) %>% 
+  filter(ref_date>=2012, geo=="British Columbia")
+
+imdb_cat<-imdb_cat_s %>% filter(sex=="Total, sex")
+
+download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002601&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%2C6%5D%5D&checkedLevels=0D1%2C1D1%2C2D1%2C3D1%2C5D1%2C5D2",
+               "data/imdb_cat.csv")
+imdb_cat_can <- read_csv("data/imdb_cat.csv")%>%  
+ clean_names() %>% 
+  mutate(admission_year=str_remove(admission_year, ", admission year"),
+         years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
+          years_since=factor(years_since,
+                       levels = unique(as.numeric(years_since))),
+         ref_date=as.character(ref_date)) %>% 
+  filter(sex=="Total, sex", ref_date>=2012)
+
+ download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002601&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B7%2C8%2C9%2C10%2C11%5D%2C%5B1%2C2%2C6%5D%5D&checkedLevels=1D1%2C2D1%2C3D1",
+               "data/imdb_cat_econ.csv")
+imdb_cat_econ <- read_csv("data/imdb_cat_econ.csv")%>%  
+ clean_names()%>% 
+  mutate(admission_year=str_remove(admission_year, ", admission year"),
+         years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
+          years_since=factor(years_since,
+                       levels = unique(as.numeric(years_since))),
+         ref_date=as.character(ref_date)) %>% 
+  filter(sex=="Total, sex", ref_date>=2012)
+
+ download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002201&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B7%2C8%2C13%2C21%2C39%2C42%2C46%2C51%2C52%2C53%2C54%2C55%2C56%5D%2C%5B1%5D%2C%5B%5D%2C%5B%5D%2C%5B5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%2C14%2C15%5D%2C%5B%5D%2C%5B5%5D%5D&checkedLevels=2D1%2C3D1%2C5D1%2C5D2","data/imdb_ret.csv")
+imdb_ret <- read_csv("data/imdb_ret.csv")%>%  
+ clean_names()%>% 
+  mutate(admission_year=str_remove(admission_year, ", admission year"),
+         years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>=0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
+          years_since=factor(years_since,
+                       levels = unique(as.numeric(years_since))),
+         ref_date=as.character(ref_date)) %>% 
+  filter(!str_detect(geo,"Nova Scotia"))
+
+
+
+cpi <- read_csv("cpi.csv")%>%  
+ clean_names() %>% 
+  mutate(adj=value/141.6,
+         ref_date=as.character(ref_date)) %>% 
+  select(ref_date,adj)
+
+
+med_inc <- read_csv("B.C Median wage.csv")%>%  
+ clean_names() %>% 
+  mutate(med_inc_bc=value,
+         
+         ad_year=as.character(ref_date-1), 
+         ref_date=as.character(ref_date))
+
+med_inc<-
+  med_inc %>% left_join(cpi) %>% 
+  mutate(
+         med_inc_bc=med_inc_bc/adj) 
+
+imdb_cat<-imdb_cat %>% 
+  left_join(med_inc[,c("med_inc_bc","ref_date")], by = "ref_date")
+
+imdb_cat<-imdb_cat  %>% 
+  mutate(perc_of_prov_med=ifelse(statistics=="Median total income", round((value-med_inc_bc)/med_inc_bc*100), NA))
+
+
+ for(i in 1:nrow(imdb_cat)){
+   
+    imdb_cat <-  
+      imdb_cat %>% 
+      mutate( i=(as.numeric(admission_year)-2011+1)) %>% 
+      group_by(immigrant_admission_category, admission_year, statistics) %>%
+      mutate(perc=ifelse(admission_year<=2017,paste0("%",round((value-value[i])/abs(value[i])*100,1)),
+                         paste0("%",round((value-value[1])/abs(value[1])*100,1))), 
+             perc_yy=paste0("%",round((value-lag(value))/abs(lag(value))*100,1)) ) %>% 
+      ungroup()
+ }
+
+
+
+ for(i in 1:nrow(imdb_exp)){
+   
+    imdb_exp <-  
+      imdb_exp %>% 
+      mutate( i=(as.numeric(admission_year)-2011+1)) %>% 
+      group_by(pre_admission_experience, admission_year, statistics) %>%
+      mutate(perc=ifelse(admission_year<=2017,paste0("%",round((value-value[i])/abs(value[i])*100,1)),
+                         paste0("%",round((value-value[1])/abs(value[1])*100,1))),
+             perc_yy=paste0("%",round((value-lag(value))/abs(lag(value))*100,1)) ) %>% 
+      ungroup()
+ }
+
+
+ for(i in 1:nrow(imdb_cat_econ)){
+   
+    imdb_cat_econ <-  
+      imdb_cat_econ %>% 
+      mutate( i=(as.numeric(admission_year)-2011+1)) %>% 
+      group_by(immigrant_admission_category, admission_year, statistics) %>%
+      mutate(perc=paste0("%",round((value-value[i])/abs(value[i])*100,1)), 
+             perc_yy=paste0("%",round((value-lag(value))/abs(lag(value))*100,1)) ) %>% 
+      ungroup()
+    }
+
+ for(i in 1:nrow(imdb_age)){
+   
+    imdb_age <-  
+      imdb_age %>% 
+      group_by(admission_year,years_since, statistics, immigrant_admission_category) %>%
+      mutate(total=ifelse(statistics=="Total number of residents", sum(value),NA),
+        proportion=ifelse(statistics=="Total number of residents", 
+                               round((value)/(value[profile=="25 to 34 years"]),2),NA),
+        prop2=ifelse(statistics=="Total number of residents", 
+                               round((value)/total,2),NA) ) %>% 
+      ungroup()
+    }
+
+
+ for(i in 1:nrow(imdb_reg)){
+   
+    imdb_reg <-  
+      imdb_reg %>% 
+      mutate( i=(as.numeric(admission_year)-2011+1)) %>% 
+      group_by(immigrant_admission_category, admission_year, statistics, geo,pre_admission_experience) %>%
+      mutate(perc=paste0("%",round((value-value[i])/abs(value[i])*100,1)), 
+             perc_yy=paste0("%",round((value-lag(value))/abs(lag(value))*100,1))) %>% 
+      ungroup() %>% 
+      group_by(admission_year, statistics, ref_date) %>% 
+      mutate(perc_share=ifelse(statistics=="Total number of residents",
+                               round(value/value[geo=="British Columbia"]*100,1),NA)) %>% 
+      ungroup()
+    }
+
+
+
+ for(i in 1:nrow(imdb_cat_s)){
+   
+    imdb_cat_s<-  
+      imdb_cat_s %>% 
+      filter(sex!="Total, sex") %>% 
+      mutate( i=(as.numeric(admission_year)-2011+1)) %>% 
+      group_by(immigrant_admission_category, admission_year, statistics, sex) %>%
+      mutate(perc=paste0("%",round((value-value[i])/abs(value[i])*100,1)), 
+             perc_yy=paste0("%",round((value-lag(value))/abs(lag(value))*100,1)) ) %>% 
+      ungroup() %>% 
+      group_by(immigrant_admission_category, admission_year, statistics) %>%
+      mutate(perc_dif_sex=paste0("%",ifelse(sex=="Males", round((value[sex=="Males"]-value[sex=="Females"])/abs(value[sex=="Females"])*100,1), 
+                                 round((value[sex=="Males"]-value[sex=="Females"])/abs(value[sex=="Females"])*100,1)))) %>% 
+      mutate(dolar_inc_gap=ifelse(sex=="Males", round(value[sex=="Males"]-value[sex=="Females"]), 
+                                 round(value[sex=="Males"]-value[sex=="Females"]))) %>% 
+      ungroup()
+ }
+
+
+
+```
+
+
+
+# Key Findings
+
+In 2020, the number of immigrants admitted into B.C. decreased. The number of immigrant tax-filers in B.C. admitted in 2020 was 42% lower at 23,010 than the number of immigrant tax-fillers admitted in 2019. (Figure \@ref(fig:plot4))
+<br>
+
+Immigrants who landed in 2020 reported a higher median income of \$41,600 in their first year than those who landed a decade earlier (in 2011) in their tenth year (\$37,700). (Figure \@ref(fig:plot1)) Economic immigrant cohort of each year had a higher first year median income than the year before. Economic immigrants admitted in 2020 had a higher median total income of \$57,500 in their first year after landing compared to their counterparts landed in 2011 who reported a median total income of \$53,400 in their tenth year. (Figure \@ref(fig:plot2))
+<br>
+
+Principal applicants under the Canadian Experience Class continued to report higher incomes than those admitted under Provincial Nominee Program and Federal Skilled Worker Program. Immigrants who arrived in 2020 as principal applicants under the Canadian Experience Class earned 43.6% more than the provincial median income provincial median income (\$42,060) in their first year as immigrants, whilst Provincial nominees and Skilled workers earned earned 37% and 31% more respectively than the provincial median income. (Figure \@ref(fig:plot9))
+<br>
+
+Income growth of immigrants of cohorts admitted in 2018 or earlier slowed down between 2020 and 2021 due to the global pandemic (Figure \@ref(fig:plot1)). This trend affected women more than men (Figure \@ref(fig:plot10)). For cohorts admitted 5 and 10 years ago, refugees were the only major immigrant category that saw a decline in their income (Figure \@ref(fig:plot6)).
+<br>
+
+Even though the incidence of employment income increased over the years after admission for each cohort, immigrants of all admission years, experienced a decrease in the incidence of employment income in 2020 compared to the year before due to the global pandemic. (Figure \@ref(fig:plot3))
+<br>
+
+
+Sponsored Family immigrants and Refugees had a median income that was lower than half of that of economic immigrants. (Figure \@ref(fig:plot5))
+<br>
+
+In 2021 median total income of immigrants who previously held work and study permits were higher than those who only held study permits or work permits prior to their admission. (Figure \@ref(fig:plot14))
+<br>
+
+Retention rates in B.C. are between 85-88% between 3rd and 10th year after landing (Figure \@ref(fig:plot17)). In B.C. Retention rates are consistently lower for immigrants without pre-admission experience. Whilst the first year retention rate increased for the 2020 cohort with pre-admission experience compared to the first year retention rates of 2011 and 2016 cohorts, it decreased for immigrants without pre-admission experience. (Figure \@ref(fig:plot16))
+<br>
+
+Data demonstrates that B.C. had a positive net inter provincial migration of immigrants admitted five and ten years ago. (Figure \@ref(fig:plot18)) 
+<br>
+
+Smaller percentage of the newer tax-filing immigrants of B.C. resided in the Lower Mainland-Southwest in their first year, compared to the immigrants admitted between 2011 and 2015. The percentage of tax-filing immigrants residing in Vancouver Island and Coast and Thompson-Okanagan in their first year increased for immigrants admitted 2016 onwards, compared to those admitted earlier. (Table \@ref(tab:table1))
+<br>
+
+First year after admission median total income is higher for immigrants in the 25-34 year age category compared to those in the 35-44 year age category; whilst the 5th and 10th year median total incomes are higher for immigrants who are aged 35-44. (Figure \@ref(fig:plot20))
+<br>
+
+Economic immigrants admitted more recently have a younger age profile than those admitted earlier. (Figure \@ref(fig:plot22))
+
+10 year citizenship intake rate was higher younger the age category for all admission categories with the exception of refugees. (Figure \@ref(fig:plot23))
+
+5 and 10 year citizenship intake rates were the highest for immigrants whose country of origin was Iran, and were the lowest for those whose country of origin was China. (Figure \@ref(fig:plot24))
+
+<br> 
+
+## Median total income trends of immigrants by admission year
+Source: ^[Statistics Canada. Table 43-10-0026-01  Income of Immigrant tax-filers, by immigrant admission category and tax year, for Canada and provinces, 2021 constant dollars]
+
+
+```{r plot1, echo=FALSE,  fig.cap="2021 Median total income of immigrants by admission category"}
+
+
+ a<-
+  
+  ggplot(imdb_cat %>% filter(statistics=="Median total income", 
+                             immigrant_admission_category=="Total, immigrant admission category"), 
+         aes(x=years_since, y=value, group=admission_year,
+                              color=admission_year,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                            "\n% change from the first tax year of cohort:", perc, 
+                                            "\nAdmission year", admission_year, 
+                          "\nTax Year:", ref_date,
+                                                                        "\nYear over year percentage change:", perc_yy))) +
+ geom_point(size=0.3)+
+   geom_path()+
+ scale_y_continuous(labels=scales::comma)+
+ labs(x="Years since landing",
+      y="Median total income", color="")+
+theme_minimal()+
+
+  scale_color_brewer(palette = "Paired")+
+
+  
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))
+
+ ggplotly(a, tooltip="text")
+ 
+
+
+```
+
+
+
+<br> <br> 
+After 2013, admission cohort of each year had a higher starting median total income. The median total income of all cohorts followed an upward trajectory over the years. However, between 2020 and 2021, for all admission cohorts, the upwards trend in median income slowed down due to the pandemic. For immigrants admitted in 2017 or earlier, the yearly income growth fell to between 1 to 4%, from 11 to 16% the year before.
+
+<br> <br> 
+<br> <br> 
+<br> <br> 
+
+### Median income of economic immigrants
+
+```{r plot2, echo=FALSE,  fig.cap="Median income of immigrants in 2021"}
+
+ a<-
+  
+  ggplot(imdb_cat %>% filter(statistics=="Median total income", 
+                             immigrant_admission_category=="Economic Immigrant, principal applicant"), 
+         aes(x=years_since, y=value, group=admission_year,
+                              color=admission_year,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                            "\n% change from the first tax year of cohort:", perc, 
+                                            "\nAdmission year", admission_year, "\nTax Year:", ref_date,
+                                                                        "\nYear over year percentage change:", perc_yy))) +
+ geom_point(size=0.5)+
+  geom_path()+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Years since landing",
+      y="Median total income", color="")+
+
+  theme_minimal()+
+
+  scale_color_brewer(palette = "Paired")+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))
+
+ ggplotly(a, tooltip="text")
+ 
+
+```
+
+<br> <br> 
+Each admission cohort of economic immigrants had a higher starting total median income than their counterparts admitted the year before. In 2021, the highest median total income was reported by 2016 and 2017 admission years at \$59,600, followed by 2017 admission year at \$59,000. Whilst having a lower first year income compared to the cohorts admitted after them the median income of these cohorts benefitted from the years spent in the country. Even with an increase of 80% in their median income over ten years, the lowest median total income was reported by the 2011 admission cohort.
+
+
+<br> <br> 
+<br> <br> 
+<br> <br> 
+
+## Incidence of employment income trends of immigrants by admission year
+<br> <br> 
+
+```{r plot3, echo=FALSE,  fig.cap="2021 Median total income of immigrants by admission year"}
+
+  
+ a<- ggplot(imdb_cat %>% filter( statistics=="Incidence of employment income",
+                                immigrant_admission_category%in%c("Economic Immigrant, principal applicant")), 
+         aes(x=ref_date, y=value, group=admission_year, color=admission_year,
+             text=paste("\nValue:", value, 
+                                            "\nAdmission year", admission_year, 
+                                            "\nTax Year:", ref_date, 
+                        "\nAdmission category:", immigrant_admission_category,
+                         "\n% change from the first tax year of cohort:", perc, 
+                           "\nYear over year percentage change:", perc_yy))) + 
+ geom_point(size=0.5)+
+    geom_path()+ scale_y_continuous(labels=scales::comma)+
+ labs(x="Tax year",
+      y="Percentage-Economic immigrants", color="Admission year")+
+  theme_minimal()+
+
+  theme(
+        legend.title = element_text(size = 9), 
+        legend.text = element_text(size = 7), 
+        axis.title = element_text(size=9))+
+ 
+          scale_color_brewer(palette = "Paired")
+
+ 
+  b<- ggplot(imdb_cat %>% filter( statistics=="Incidence of employment income",
+                                immigrant_admission_category%in%c("Total, immigrant admission category")), 
+         aes(x=ref_date, y=value, group=admission_year,
+                              color=admission_year,
+             text=paste("\nValue:",value, 
+                                            "\nAdmission year", admission_year, 
+                                            "\nTax Year:", ref_date, 
+                        "\nAdmission category:", immigrant_admission_category,
+                         "\n% change from the first tax year of cohort:", perc, 
+                           "\nYear over year percentage change:", perc_yy))) + 
+ geom_point(size=0.5)+
+    geom_path()+
+ scale_y_continuous(labels=scales::comma)+
+ labs(x="Tax year",
+      y="Percentage-All immigrants", color="Admission year")+
+  theme_minimal()+
+
+  theme(
+       legend.title = element_text(size = 9), 
+        legend.text = element_text(size = 7))+
+ 
+          scale_color_brewer(palette = "Paired")
+
+
+ 
+ subplot(style(ggplotly(b, tooltip = "text"), showlegend=FALSE), ggplotly(a, tooltip = "text"),
+        margin = 0.02, nrows=2, shareY = TRUE, shareX = TRUE, which_layout = 1, titleX = TRUE,titleY = TRUE)
+
+
+ 
+```
+
+<br> <br> 
+
+Whilst immigrants saw an increase in the incidence of employment income over the years after their landing, in 2020 the global Covid-19 pandemic negatively affected the incidence of employment of immigrants. 
+
+For economic immigrants, each admission year has a higher first year and a higher 2021 incidence of employment income compared to their counterparts admitted the year before. 
+<br> <br> 
+<br> <br> 
+<br> <br> 
+
+
+# IMDB statistics by immigrant admission category
+Source: ^[Statistics Canada. Table 43-10-0026-01  Income of Immigrant tax-filers, by immigrant admission category and tax year, for Canada and provinces, 2021 constant dollars]
+
+## Total number of residents in 2021 by immigrant admission category
+
+<br> 
+```{r plot4, echo=FALSE,  fig.cap="Total number of residents by immigrant admission category-2021"}
+a<-  ggplot(imdb_cat %>% filter(statistics=="Total number of residents", ref_date=="2021"), 
+         aes(x=admission_year, y=value,
+             group=immigrant_admission_category,
+             color=immigrant_admission_category, 
+             text=paste("\nNumber of residents:", formatC(value, format="d", big.mark=","), 
+                                            "\nAdmission year", admission_year, 
+                                            "\nTax Year:", ref_date, 
+                                              # "\nYear over year percentage change:", perc_yy,
+
+                        "\nAdmission category:", immigrant_admission_category))) + 
+ geom_line(stat="identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Admission year",
+      y="Number of individuals", color="")+
+  theme_minimal()+
+
+  
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+ggplotly(a, tooltip="text")
+
+
+```
+
+<br> <br> 
+Total number of tax-filing immigrants admitted almost halved in 2020 from the year before due to the Covid-19 pandemic, with only 23,010 tax-filing residents admitted in 2020. The decrease was especially steep for immigrants sponsored by family.
+
+<br> <br> 
+
+## Median total income of immigrants by admission category
+
+```{r plot5, echo=FALSE,  fig.cap="2021 Median total income of immigrants by admission category- Admission years 2011 and 2020"}
+
+a<-ggplot(imdb_cat %>% filter(admission_year%in%c(2011,2020),
+                              ref_date==2021, 
+                              statistics=="Median total income", 
+                              immigrant_admission_category!="Other immigrants"), 
+         aes(x=immigrant_admission_category, y=value, group=admission_year,
+                              fill=admission_year,
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                            "\nAdmission year", admission_year, 
+                                            "\nTax Year:", ref_date, 
+                        "\nAdmission category:", immigrant_admission_category
+                           ))) + 
+ geom_bar(stat="identity", position="dodge")+
+ scale_y_continuous(labels=scales::comma)+
+theme_minimal()+
+ labs( x="",
+      y="Median total income", fill="Admission year")+
+  theme(
+            
+            axis.text.x = element_text(size=7,angle=20),
+            axis.title.y = element_text(size=12)
+            
+         )+
+  scale_fill_brewer(palette = "Dark2")+  
+  geom_hline(aes(yintercept=42060, text="Provincial median: 42,060"), color="blue")
+ggplotly(a, tooltip = "text")
+
+
+
+```
+
+
+<br> <br> 
+
+In 2021, the median total income for all immigration categories, excluding economic immigrants and their spouses, was higher for the cohort admitted in 2011 compared to those admitted in 2020. For immigrants sponsored by family, refugees, and other immigrants, an increase in time and experience in Canada correlated with a rise in total income. In contrast, economic immigrants and their spouses admitted in later years exhibited a higher median total income in 2021.
+ 
+<br> <br> 
+<br> <br> 
+
+```{r plot6, echo=FALSE,  fig.cap="Median income of immigrants 1st year after landing"}
+
+ a<-
+  
+  ggplot(data=imdb_cat %>% filter(years_since==1, 
+                             statistics=="Median total income", 
+                             immigrant_admission_category!="Other immigrant",
+                             immigrant_admission_category!="Total, immigrant admission category")) + 
+
+
+    geom_point(
+         aes(x=admission_year, y=value, group=admission_year,
+                              color=immigrant_admission_category,
+             shape=immigrant_admission_category,
+            
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                        "\nAdmission year", admission_year, 
+                        "\nTax Year:", ref_date, 
+                        "\nAdmission category:", immigrant_admission_category, 
+                        "\nPercentage difference compared to provincial median:", perc_of_prov_med)))+
+  geom_line(data=med_inc, aes(y=med_inc_bc, x=ad_year, group=1,
+                               text=paste(
+                        "\nTax year:", ref_date, 
+                        "\nProvincial median:", formatC(med_inc_bc, format="d", big.mark=","))), color="blue")+
+ labs(x="Admission year",
+      y="Median total income", color="Admission category", shape="")+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")+
+   scale_y_continuous(labels=scales::comma)+
+
+  theme_minimal()
+
+ggplotly(a,  tooltip = "text") %>% plotly::layout(showlegend=T, legend = list(font = list(size = 10)))
+
+```
+
+Sources: ^[Statistics Canada. Table 18-10-0005-01  Consumer Price Index, annual average, not seasonally adjusted]
+^[Statistics Canada. Table 11-10-0008-01  Tax filers and dependants with income by total income, sex and age]
+
+<br> <br> 
+<br> 
+The median total income of immigrants in their first year was higher for immigrants admitted in the most recent years. This was especially true for economic immigrant principal applicants. The median total income of economic immigrants went from either being on par with or up to 15% lower than the provincial median income for admission years 2011 to 2014 and 6-16% higher than the provincial median income for admission years 2015-2016 to 23-37% higher for admission years 2017 onwards. 
+
+Spouses and dependents of economic immigrants had a higher income relative to the provincial median, admission year 2015 onwards compared to their counterparts admitted earlier. Admission year 2015 onwards the lowest earning categories were Immigrants sponsored by family and Refugees. The absolute and relative median income of immigrants in these categories also increased for admission years 2015 onwards. For earlier admission years the first year income of immigrants admitted under these categories used to be 53 to 59 percent lower than the provincial median, whereas 2015 onwards their earnings were only 47 to 32 percent lower than the provincial median. 
+<br> <br> 
+<br> <br> 
+<br> <br> 
+
+## 5 and 10 year trends for median total income of immigrants by admission category
+
+
+<br> <br> 
+
+```{r plot7, echo=FALSE,  fig.cap="Median income trends of immigrants-admission years 2011 and 2016"}
+
+ a<-
+  
+  ggplot(imdb_cat %>% filter(admission_year==2011, 
+                             statistics=="Median total income", 
+                             immigrant_admission_category!="Other immigrant",
+                             immigrant_admission_category!="Total, immigrant admission category"), 
+         aes(x=ref_date, y=value, group=immigrant_admission_category,
+                              color=immigrant_admission_category,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                        "\n% change from the first tax year of cohort:", perc, 
+                        "\nYear over year percentage change:", perc_yy,
+                        "\nAdmission year", admission_year, 
+                        "\nTax Year:", ref_date, 
+                        "\nAdmission category:", immigrant_admission_category))) + 
+ geom_line(stat="identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Tax year",
+      y="2011 admission year", color="")+
+theme_minimal()+
+
+  
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+
+b <-
+  
+  ggplot(imdb_cat %>% filter(admission_year==2016, 
+                             statistics=="Median total income",
+                             immigrant_admission_category!="Other immigrant",
+                             immigrant_admission_category!="Total, immigrant admission category"), 
+         aes(x=ref_date, y=value, group=immigrant_admission_category,
+                              color=immigrant_admission_category,
+              text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                        "\n% change from the first tax year of cohort:", perc, 
+                        "\nYear over year percentage change:", perc_yy,
+                        "\nAdmission year", admission_year, 
+                        "\nTax Year:", ref_date, 
+                        "\nAdmission category:", immigrant_admission_category))) + 
+ geom_line(stat="identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Tax year",
+      y="2016 admission year", color="")+
+
+     scale_color_brewer(palette = "Dark2")+
+theme_minimal()+
+
+  
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))
+
+
+
+
+subplot(style(ggplotly(a, tooltip = "text"), showlegend=FALSE), ggplotly(b, tooltip="text"), 
+        nrows = 2, margin = 0.003,shareX = TRUE, titleX = TRUE, shareY=FALSE, titleY=TRUE)
+
+
+
+
+```
+
+
+<br> <br> 
+
+
+While income growth decelerated between 2020 to 2021 for all admission categories in both admission years, refugees were the only group to experience a decrease in their income compared to the previous year.
+
+The yearly growth rate of median total income of economic immigrants admitted 10 years ago slowed down in their 7th year after admission to stabilize between 3-4.5%, from 7.4-10% in the years prior. For both admission cohorts, the largest yearly increase in the income of economic immigrants of all categories happened between 2019 and 2020.  
+
+<br>
+<br>
+
+
+
+```{r plot8, echo=FALSE,  fig.cap="Median income trends of economic immigrants-admission years 2011 and 2016"}
+a<-  ggplot(imdb_cat_econ %>% filter(admission_year==2011, statistics=="Median total income"), 
+         aes(x=years_since, y=value, group=immigrant_admission_category,
+                              color=immigrant_admission_category,
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                        "\n% change from the first tax year of cohort:", perc, 
+                         "\nYear over year percentage change:", perc_yy,
+                         "\nAdmission year", admission_year, 
+                        "\nTax Year:", ref_date, 
+                        "\nAdmission category:", immigrant_admission_category))) + 
+ geom_line(stat="identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs(x="Years since landing",
+      y="Admission year 2011", color="")+
+theme_minimal()+
+
+  
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+
+
+b<-  ggplot(imdb_cat_econ %>% filter(admission_year==2016, statistics=="Median total income"), 
+         aes(x=ref_date, y=value, group=immigrant_admission_category,
+                              color=immigrant_admission_category, 
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                            "\n% change from the first tax year of cohort:", perc, 
+                                             "\nYear over year percentage change:", perc_yy,
+                                            "\nAdmission year", admission_year, 
+                                            "\nTax Year:", ref_date, 
+                        "\nAdmission category:", immigrant_admission_category))) +
+ geom_line(stat="identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs(x="Tax year",
+      y="Admission year 2016", color="")+
+theme_minimal()+
+
+  
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+
+subplot(style(ggplotly(a, tooltip = "text"), showlegend=FALSE), ggplotly(b, tooltip = "text"), 
+        nrows = 2, margin = 0.003, shareX = TRUE, shareY = TRUE)
+
+
+
+```
+
+<br> <br> 
+<br> <br> 
+
+The cohort admitted in 2011, 10 years prior to 2021 tax year, showed significant income gains over the ten years for all economic immigration categories. Immigrants admitted though the Canadian Experience Class experienced a 59% increase in their median total income in the ten year duration. Immigrants admitted in 2016 had overall higher earnings first year after their admission compared to their 2011 counterparts. Canadian Experience Class applicants of both admission groups experienced the same percentage increase (27.4%) in their earnings 5 years after admission. 
+
+Immigrants admitted through the skilled workers program in 2011 experienced a 76% increase in their median total income within the first five years after their admission and 141% within ten years after admission. Their counterparts admitted in 2016, had a higher median total income in their first year after admission and had a %51 increase in their median total income 5 years after admission.  
+
+Provincial/territorial nominees had a 22% and a 28% increase in their median total income over the first five years; for admission years 2011 and 2016 respectively.
+
+In 2021, all economic immigrant categories but immigrants admitted through business programs continued to have an income growth. Business programs applicants admitted in 2011 experienced a %7.5 decrease in their median total income from the year before; whilst their counterparts admitted in 2016 experienced a 10.7% decrease in their median total income.  
+
+<br> <br> 
+<br> <br> 
+
+
+
+
+### Median total income of highest earning economic immigration categories by admission year
+```{r plot9, echo=FALSE,  fig.cap="2021 Median total income of economic immigrants by admission year and category"}
+
+d<-ggplot(imdb_cat_econ %>% filter(ref_date==2020, statistics=="Median total income", 
+                              immigrant_admission_category!="Business programs, principal applicant"&
+                                immigrant_admission_category!="Caregiver, principal applicant" ), 
+         aes(x=admission_year, y=value, group=immigrant_admission_category, fill=immigrant_admission_category,
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                            "\nAdmission year", admission_year, 
+                                            "\nTax Year:", ref_date, 
+                        "\nAdmission category:", immigrant_admission_category))) + 
+ geom_bar(stat="identity", position="dodge")+
+ scale_y_continuous(labels=scales::comma)+
+ labs(
+      y="Median total income", fill="")+
+
+  theme(
+            
+            axis.text.x = element_text(size=7,angle=20),
+            axis.title.y = element_text(size=8), 
+            axis.title.x=element_text(size=8))+ 
+  theme_minimal()+
+   scale_fill_brewer(palette = "Dark2")+
+  geom_hline(aes(yintercept=42060, text="Provincial median: 42,060"), color="blue")
+
+
+
+ggplotly(d, tooltip = "text") %>% 
+    layout(showlegend = TRUE, legend = list(font = list(size = 9), x=0.6,y=-0.32), 
+           xaxis = list(titlefont = list(size = 13), title="Admission year"))
+
+
+
+```
+
+<br> <br> 
+In 2021, immigrants admitted though Canadian Experience Class admitted between 2013 and 2017 exhibited a higher median total income compared to their counterparts admitted between 2011 and 2012. The highest earning Provincial Nomination Program immigrants were the ones admitted between 2012 and 2017. For skilled worker and skilled trade category, the median income was the highest for immigrants admitted between 2015 and 2018. Immigrants admitted over the last few years having a relatively lower income compared to their counterparts can be attributed to the shortness of their Canadian experience. 
+
+For all admission years, Canadian Experience Class immigrants had the highest median total income in 2021 amongst all economic immigrant categories. Even though skilled trades were some of the most negatively affected professions by the pandemic, with the exceptions of admission years 2013, 2014 and 2020, skilled workers of most admission years had higher median total incomes in 2021 compared to provincial nominees. Provincial nominees of all ten admission years had the least variation between their incomes, compared to Canadian Experience Class immigrants and skilled workers. 
+
+
+<br> <br> 
+<br> <br> 
+<br> <br> 
+
+
+## Median total income of immigrants by sex
+
+```{r plot10, echo=FALSE,  fig.cap="Median income of immigrants by sex"}
+a<-  ggplot(imdb_cat_s %>% filter(admission_year==2011,
+                                  statistics=="Median total income",
+                                  sex!="Total, sex",
+                                  immigrant_admission_category=="Total, immigrant admission category"), 
+         aes(x=years_since, y=value, group=sex,
+                              color=sex,
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                        "\n% change from the first tax year of cohort:", perc, 
+                                             "\nYear over year percentage change:", perc_yy,
+                                            "\nPercentage income gap between sexes", perc_dif_sex, 
+                        "\nIncome gap in $:", formatC(dolar_inc_gap, format="d", big.mark=","),
+
+                                            "\nAdmission year", admission_year, "\nTax Year:", years_since))) + 
+ geom_line(stat="identity")+
+ labs(x="Years since landing-\nAdmission year 2011",
+      y="Median total income", color="")+
+theme_minimal()+
+ scale_y_continuous(labels=scales::comma, breaks = seq(15000, 50000, by = 5000), , limits = c(15000, 50000))+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7), 
+        axis.title.x = element_text(size=8))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+
+b<-  ggplot(imdb_cat_s %>% filter(admission_year==2016,
+                                  statistics=="Median total income",
+                                  sex!="Total, sex",
+                                  immigrant_admission_category=="Total, immigrant admission category"), 
+         aes(x=years_since, y=value, group=sex,
+                              color=sex, 
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                            "\n% change from the first tax year of cohort:", perc, 
+                                             "\nYear over year percentage change:", perc_yy,
+                                          "\nPercentage income gap between sexes", perc_dif_sex, 
+                                            "\nIncome gap in $:", formatC(dolar_inc_gap, format="d", big.mark=","),
+
+                                            "\nAdmission year", admission_year, 
+                                            "\nTax Year:", years_since))) +
+ geom_line(stat="identity")+
+labs(x="Years since landing-\nAdmission year 2016",
+      y="", color="") +
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7), 
+        axis.title.x = element_text(size=8))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+c<-  ggplot(imdb_cat_s %>% filter(admission_year==2020,
+                                  statistics=="Median total income",
+                                  sex!="Total, sex",
+                                  immigrant_admission_category=="Total, immigrant admission category"), 
+         aes(x=years_since, y=value, group=sex,
+                              color=sex, 
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                            "\n% change from the first tax year of cohort:", perc, 
+                                             "\nYear over year percentage change:", perc_yy,
+                                          "\nPercentage income gap between sexes", perc_dif_sex, 
+                                            "\nIncome gap in $:", formatC(dolar_inc_gap, format="d", big.mark=","),
+
+                                            "\nAdmission year", admission_year, 
+                                            "\nTax Year:", ref_date))) +
+ geom_point(stat="identity", size=1)+
+ scale_y_continuous(labels=scales::comma, breaks = seq(15000, 50000, by = 5000), , limits = c(15000, 50000))+
+ labs(x="Years since landing-\nAdmission year 2020",
+      y="", color="")+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+  legend.text = element_text(size = 7), 
+        axis.title.x = element_text(size=8))+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+
+subplot(style(ggplotly(a, tooltip = "text"), showlegend=FALSE), ggplotly(b, tooltip = "text"), style(c, showlegend=FALSE, tooltip = "text"),
+        margin = 0.003, widths =c(0.5,0.45, 0.05), shareY = TRUE, shareX = TRUE, which_layout = 1, titleX = TRUE,titleY = TRUE)
+
+```
+
+<br> <br> 
+The income gap between males and females decreased over the years after admission for both 2011 and 2016 admission cohorts. In their first year after admission men earned 59.6%, 55.7%, 44.9% more than women, respectively for the 2011, 2016 and 2020 admission cohorts. The percentage increase in the income of females were higher in their 5th and 10th years after admission, compared to men. For the 2011 admission cohort, the earnings of men improved by %36, 5 years after their landing, and by %70 10 years after their landing. For females, the income improvements were %43 and %109 respectively for the 5th and 10th year marks. For the cohort admitted in 2016, the improvements in income in the 5th year after landing were 36% and 50% for males and females respectively. 
+
+Between 2020 and 2021, the income growth of females slowed down more than that of males with only 0.6% and 2.7% yearly increases for 2011 and 2016 cohorts respectively. In this period, their male counterparts experienced a 2.6% and 4.3% increase in their income. 
+
+<br> <br> 
+<br> <br> 
+<br> <br> 
+
+
+
+
+# IMDB statistics by immigrant pre-admission experience
+Sources: ^[Statistics Canada. Table 43-10-0026-01  Income of Immigrant tax-filers, by immigrant admission category and tax year, for Canada and provinces, 2021 constant dollars]
+
+## 5 and 10 year trends for median total income of immigrants by pre-admission experience
+
+<br> <br> 
+
+```{r plot11, echo=FALSE,  fig.cap="2021 Median total income of immigrants by pre-admission experience"}
+
+
+a<-  ggplot(imdb_exp %>% filter(admission_year==2011, statistics=="Median total income", 
+                                pre_admission_experience!="Total, pre-admission experience"&
+                                  pre_admission_experience!= "With other temporary permits"), 
+         aes(x=ref_date, y=value, group=pre_admission_experience,
+                              color=pre_admission_experience,
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                        "\n% change from the first tax year of cohort:", perc, 
+                        "\nYear over year percentage change:", perc_yy,
+                        "\nAdmission year", admission_year, 
+                        "\nTax Year:", ref_date, 
+                        "\nPre-admission experience:", pre_admission_experience))) + 
+ geom_line()+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Tax year",
+      y="Admission year 2011")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+b<-  ggplot(imdb_exp %>% filter(admission_year==2016, 
+                                statistics=="Median total income",
+                                pre_admission_experience!="Total, pre-admission experience"&
+                                  pre_admission_experience!= "With other temporary permits"),  
+ 
+         aes(x=ref_date, y=value, group=pre_admission_experience,
+                              color=pre_admission_experience, 
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                        "\n% change from the first tax year of cohort:", perc, 
+                        "\nYear over year percentage change:", perc_yy,
+                        "\nAdmission year:", admission_year, 
+                        "\nTax Year:", ref_date, 
+                        "\nPre-admission experience:", pre_admission_experience))) + 
+
+ geom_line()+
+ scale_y_continuous(labels=scales::comma)+
+ labs(x="Tax year",
+      y="Admission year 2016", color="")+
+theme_minimal()+
+
+  
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+
+
+subplot(style(ggplotly(a, tooltip="text"), showlegend=FALSE), ggplotly(b, tooltip = "text"), 
+        nrows = 2, margin = 0.003, shareX = TRUE, shareY = TRUE)
+
+
+```
+
+<br> <br> 
+
+
+Median income of immigrants, in all pre-admission experience categories of both admission years of 2011 and 2016, had an upward trend over the years after admission. Immigrants admitted in 2016 had a higher first tax-year income for all pre-admission experience categories compared to their counterparts admitted in 2011. The lowest income in the first year after admission, as well as in the tenth year after admission was experienced by the immigrants who only held study permits pre-admission; followed by immigrants without pre-admission experience.
+
+
+A slower income growth was observed between 2020 and 2021 for most categories except for immigrants with work and study permits. Asylum claimants were the only category that experienced a decline in their income in this period for both admission years. 
+
+<br> <br> 
+<br> <br> 
+
+
+<!-- # ```{r plot2, echo=FALSE,  fig.cap="2021 Median total income of immigrants by admission category"} -->
+<!-- #  -->
+<!-- #  -->
+<!-- #  -->
+<!-- # d<-ggplot(imdb_exp %>% filter(admission_year%in%(2017:2020),ref_date==2021, statistics=="Median total income"),  -->
+<!-- #          aes(x=pre_admission_experience, y=value, group=admission_year, -->
+<!-- #                               fill=admission_year, -->
+<!-- #              text=paste("\nValue:", formatC(value, format="d", big.mark=","),  -->
+<!-- #                                             "\n% change from the first tax year of cohort:", perc,  -->
+<!-- #                                             "\nAdmission year", admission_year,  -->
+<!-- #                                             "\nTax Year:", ref_date,  -->
+<!-- #                         "\nAdmission category:", immigrant_admission_category))) +  -->
+<!-- #  geom_bar(stat="identity", position="dodge")+ -->
+<!-- #  scale_y_continuous(labels=scales::comma)+ -->
+<!-- #  labs(title="Median total income of immigrants by pre-admission experience", x="", -->
+<!-- #       y="Median total income", color="")+ -->
+<!-- #   theme( -->
+<!-- #              -->
+<!-- #             axis.text.x = element_text(size=7,angle=20), -->
+<!-- #             axis.title.y = element_text(size=12) -->
+<!-- #              -->
+<!-- #          )+ -->
+<!-- #   -->
+<!-- #           scale_fill_brewer(palette = "Dark2") -->
+<!-- #  -->
+<!-- # ggplotly(d) -->
+<!-- #  -->
+<!-- # ``` -->
+
+
+
+
+## Incidence of employment income of immigrants by pre-admission experience for immigrants admitted in 2011 and 2020
+<br> <br> 
+
+```{r plot12, echo=FALSE,  fig.cap="2021 Incidence of employment income, by pre-admission experience"}
+
+a<- ggplot(imdb_exp %>% filter(ref_date==2021, admission_year==2020|admission_year==2011, statistics=="Incidence of employment income",
+                                                              pre_admission_experience!="Total, pre-admission experience"), 
+ 
+         aes(x=pre_admission_experience, y=value, fill=admission_year,
+              text=paste("\nValue:", value,
+                    
+                        "\nAdmission year:", admission_year, 
+                        "\nTax Year:", ref_date, 
+                        "\nPre-admission experience:", pre_admission_experience))) +
+  
+ geom_bar(stat="identity", position="dodge")+
+ scale_y_continuous(labels=scales::comma)+
+ labs(x="",
+      y="Percentage", fill="Admission year")+
+  theme_minimal()+
+  scale_fill_brewer(palette = "Dark2")+  
+
+  theme(
+        legend.title = element_text(size = 9), 
+        legend.text = element_text(size = 9), 
+        axis.title = element_text(size=8))+
+  theme(
+            
+            axis.text.x = element_text(size=7,angle=20),
+            axis.title.y = element_text(size=12)
+            
+         )
+
+
+
+ ggplotly(a, tooltip="text")
+ 
+ 
+
+
+```
+
+<br> <br> 
+For immigrants admitted in 2020, the highest incidence of employment income in 2021 was amongst immigrants with previous "work and study permits" and "with work permits, only" at 93.2 and 88.8. The lowest incidence of employment income was amongst immigrants without pre-admission experience at 72.1. For the cohort admitted ten years ago, in 2011, the highest and the lowest incidence of employment income was observed in the same categories.
+<br> <br> 
+<br> <br> 
+
+## Median total income of immigrants by pre-admission experience for immigrants admitted in 2011 and 2020
+
+```{r plot13, echo=FALSE,  fig.cap="2021 median total income by pre-admission experience"}
+
+ 
+a<- ggplot(imdb_exp %>% filter(ref_date==2021, admission_year==2020|admission_year==2011, statistics=="Median total income", 
+                               pre_admission_experience!="Total, pre-admission experience"), 
+         aes(x=pre_admission_experience, y=value, fill=admission_year,
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                    
+                        "\nAdmission year:", admission_year, 
+                        "\nTax Year:", ref_date, 
+                        "\nPre-admission experience:", pre_admission_experience))) + 
+ geom_bar(stat="identity", position="dodge")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="",
+      y="Median total income", fill="Admission year")+
+  theme_minimal()+
+
+  theme(
+        legend.title = element_text(size = 9), 
+        legend.text = element_text(size = 9), 
+        axis.title = element_text(size=8))+
+  theme(
+            
+            axis.text.x = element_text(size=7,angle=20),
+            axis.title.y = element_text(size=12)
+            
+         )+
+  scale_fill_brewer(palette = "Dark2")+  
+  geom_hline(aes(yintercept=42060, text="Provincial median: 42,060"), color="blue")
+
+
+
+ ggplotly(a, tooltip="text")
+```
+
+
+<br> <br> 
+As well as the incidence of employment income, in 2021 the median total income was higher for immigrants who held only work permits or work and study permits for both 2011 and 2020 admission cohorts. The lowest median total income for both admission years was that of immigrants who only held study permits prior to admission, followed by immigrants who did not have any pre-admission experience. 
+<br> <br> 
+<br> <br> 
+
+
+```{r plot14, echo=FALSE,  fig.cap="2021 Median total income of immigrants with previous work and study permits"}
+
+ 
+a<- ggplot(imdb_exp %>% filter(ref_date==2021, statistics=="Median total income", 
+                               !pre_admission_experience%in%c("Total, pre-admission experience", "With other temporary permits", 
+                                                              "Without pre-admission experience", "With asylum claim")), 
+         aes(x=admission_year, y=value, fill=pre_admission_experience,
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                    
+                        "\nAdmission year:", admission_year, 
+                        "\nTax Year:", ref_date, 
+                        "\nPre-admission experience:", pre_admission_experience))) + 
+ geom_bar(stat="identity", position="dodge")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="",
+      y="Median total income", fill="Pre-admission experience")+
+  theme_minimal()+
+
+  theme(
+        legend.title = element_text(size = 9), 
+        legend.text = element_text(size = 9), 
+        axis.title = element_text(size=8))+
+  theme(
+            
+            axis.text.x = element_text(size=7,angle=20),
+            axis.title.y = element_text(size=12)
+            
+         )+
+  scale_fill_brewer(palette = "Dark2")+  
+  geom_hline(aes(yintercept=42060, text="Provincial median: 42,060"), color="blue")
+
+
+
+ ggplotly(a, tooltip="text")
+ 
+```
+
+In 2021 median total income of immigrants who previously held work and study permits were higher than those who only held study permits or work permits prior to their admission for all admission cohorts, with the exception of the most recent admission cohort. Immigrants who only held study permit(s) prior to admission had the lowest median total income for all admission years. Median total income of immigrants who only held study permit(s) were less than half of that of immigrants with previous work permits or with work and study permits for immigrants admitted between 2016 to 2020. It is worth noting that most study permit holders also hold post-graduate work permits prior to their admission. In 2021, for the 2016-2020 admission years, the number of tax-filing immigrants who previously only held study permits were between 610 (2020 admission year) and 1,010 (2019 admission year), whilst the number of immigrants who previously held work and study permits were between 4,495 (2016 admission year) and 8,865 (2019 admission year). 
+
+## Total number of tax-filing immigrants in 2021 by pre-admission experience
+
+
+```{r plot15, echo=FALSE,  fig.cap="2021 Total number of residents by pre-admission experience"}
+
+a<-  ggplot(imdb_exp %>% filter(statistics=="Total number of residents", 
+                                ref_date=="2021", 
+                                pre_admission_experience!="Total, pre-admission experience"), 
+         aes(x=admission_year, y=value, group=pre_admission_experience,
+                              color=pre_admission_experience,
+             text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                      
+                        "\nAdmission year:", admission_year, 
+                        "\nTax Year:", ref_date, 
+                        "\nPre-admission experience:", pre_admission_experience))) +  
+ geom_line(stat="identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Admission year",
+      y="Number of individuals", color="")+
+  theme_minimal()+
+
+  
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+ggplotly(a, tooltip = "text")
+
+
+
+
+```
+
+<br> <br> 
+Total number of immigrants without pre-admission experience was the highest across all admission years. In 2020, the number of immigrants in all pre-admission experience categories decreased significantly due to the pandemic. 
+<br> <br> 
+<br> <br> 
+
+
+# Retention rates and median total income of immigrants by region
+Sources: ^[Statistics Canada. Table 43-10-0022-01  Mobility of immigrant taxfilers by census metropolitan areas and tax year]
+^[Statistics Canada. Table 43-10-0029-01  Immigrant taxfilers by economic outcomes and tax year, economic regions, 2021 constant dollars]
+
+<br> <br> 
+<br>
+
+### Retention rate of immigrants in B.C. by pre-admission experience 
+
+```{r plot16, echo=FALSE,  fig.cap="Retention rate of immigrants in BC by pre-admission experience"}
+a<-  ggplot(imdb_ret %>% filter(pre_admission_experience!="Total, pre-admission experience", admission_year==2011, geo=="British Columbia"),
+         aes(x=years_since, y=value, group=pre_admission_experience,
+                              color=pre_admission_experience,
+             text=paste("\nValue:", value, 
+                                          "\nAdmission year", admission_year, 
+                                         "\nTax Year:", ref_date))) +
+  
+ geom_line(stat="identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Years since landing",
+      y="Retention rate", color="")+
+   scale_y_continuous(labels=scales::comma, breaks = seq(85, 97, by = 3), , limits = c(85, 97))+
+
+  
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+    theme_minimal()+
+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+
+b<-  ggplot(imdb_ret %>% filter(pre_admission_experience!="Total, pre-admission experience", admission_year==2016, geo=="British Columbia"),
+         aes(x=years_since, y=value, group=pre_admission_experience,
+                              color=pre_admission_experience, 
+             text=paste("\nValue:", value, 
+                                          "\nAdmission year", admission_year, 
+                                         "\nTax Year:", ref_date))) +
+ geom_line(stat="identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Years since landing",
+      y="Retention rate", color="")+
+
+     scale_y_continuous(labels=scales::comma, breaks = seq(85, 97, by = 3), , limits = c(85, 97))+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7), 
+        axis.title.x = element_text(size=10))+
+  theme_minimal()+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+
+c<-  ggplot(imdb_ret %>% filter(pre_admission_experience!="Total, pre-admission experience", admission_year==2020, geo=="British Columbia"),
+         aes(x=years_since, y=value, group=pre_admission_experience,
+                              color=pre_admission_experience,  
+             text=paste("\nValue:", value,  
+                                          "\nAdmission year", admission_year, 
+                                         "\nTax Year:", ref_date))) +
+ geom_line(stat="identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Years since landing",
+      y="Retention rate", color="")+
+
+   scale_y_continuous(labels=scales::comma, breaks = seq(85, 97, by = 3), , limits = c(85, 97))+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7), 
+        axis.title.x = element_text(size=10))+
+  theme_minimal()+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+     scale_color_brewer(palette = "Dark2")
+
+
+
+subplot(style(ggplotly(a, tooltip = "text") ,
+              showlegend=FALSE), 
+        ggplotly(b, tooltip = "text") %>% 
+          layout(xaxis = list(titlefont = list(size = 10), title="Years since landing-\nAdmission year 2016")), 
+       style(ggplotly(c, tooltip = "text") ,
+              showlegend=FALSE)%>% 
+          layout(xaxis = list(titlefont = list(size = 10), title="Years since landing-\nAdmission year 2020")),
+         margin = 0.0001,shareX = TRUE, shareY=TRUE, titleY=TRUE, widths = c(0.45,0.4,0.15))%>% 
+    layout(showlegend = TRUE, legend = list(font = list(size = 9), 
+                                            orientation='t',  xanchor = "center",  x = 0.5), 
+           xaxis = list(titlefont = list(size = 10), title="Years since landing-\nAdmission year 2011"))
+
+
+```
+
+<br> <br> 
+Retention rate in B.C. is consistently higher for immigrants with pre-admission experience than for immigrants without pre-admission experience. For 2011 and 2016 admission years, the retention rate of immigrants with pre-admission experience in the first year after landing was high at 92.6 and 92.7. This figure rose to 93.6 for 2020 admission year. Whilst for 2011 cohort immigrants without pre-admission experience had a retention rate of 90.1 in their first year, for the cohorts admitted in 2016 and 2020, this figure declined to 87.7 and 85.1 respectively. These observations demonstrate that whilst the retention rate in B.C. is increasing for immigrants with pre-admission experience for recent admission cohorts; immigrant without pre-admission experience are leaving B.C. at a higher rate than before. 
+
+<br> <br> 
+<br> <br> 
+
+### Retention rates in 2021 by admission year
+
+```{r plot17, echo=FALSE,  fig.cap="Retention rates by admission year"}
+imdb_ret$geo <- str_replace(imdb_ret$geo,", British Columbia", ", B.C.")
+
+imdb_ret$geo <- with(imdb_ret,factor(geo,levels = rev(c("British Columbia",
+                                                       "Vancouver, B.C.", 
+                                                       "Victoria, B.C.", 
+                                                       "Remainder, B.C.", 
+                                                       "Abbotsford - Mission, B.C.", 
+                                                       "Kelowna, B.C.", 
+                                                       "Ontario", 
+                                                       "Quebec",
+                                                       "Alberta",
+                                                       "Manitoba",
+                                                       "Saskatchewan"))))
+ggplot(imdb_ret %>%  filter(ref_date==2021, 
+                               pre_admission_experience=="Total, pre-admission experience") ,
+       aes(x = admission_year, y = geo)) +
+          geom_tile(aes(fill = value))+
+
+          scale_fill_gradient2(low = "yellow", high = "darkgreen", midpoint = 1, space = "Lab",
+                               na.value = "grey50", guide = "colourbar")+
+          geom_text(aes(label=formatC(value, format="d", big.mark=",")))+
+          theme_minimal()+
+
+          scale_x_discrete(labels=function(x){sub("\\s", "\n", x)},position = "top") +
+          theme(legend.position="none",
+                axis.text.x = element_text(size = 8),
+                axis.text.y = element_text(size = 8),
+                plot.title = element_text(size=18, face="bold",hjust = 0.5),
+                axis.title.y = element_text(size=14, face="bold"),
+                axis.title.x = element_text(size=10, face="bold"),
+                legend.text = element_text(size=8))+
+          geom_segment(x =0, xend = 13.5, y = 13.5, yend = 13.5)+
+
+           labs(title="", x="Landing year", y="", fill="")
+
+```
+<br> <br> 
+<br> <br> 
+Retention rate in B.C. for the cohort admitted in 2011 was 85%. In 2021, Vancouver had a higher retention rate for all cohorts compared to the other metropolitan areas and the remainder of B.C. 
+
+Ontario had the highest retention rate amongst provinces, with retention rates for all cohorts staying between 90% to 96%. 
+
+<br> <br> 
+
+### Trends for total number of tax-filing immigrants in B.C. by admission year and region
+
+```{r plot18, echo=FALSE,  fig.cap="2021 Total number of residents by economic region"}
+
+ a<-
+  
+  ggplot(imdb_reg %>% filter(statistics=="Total number of residents", pre_admission_experience=="Total, pre-admission experience", 
+                             immigrant_admission_category=="Total, immigrant admission category", admission_year=="2011"), 
+         aes(x=years_since, y=value, group=geo,
+                              color=geo,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date, 
+                           "\nRegion:", geo,
+                          "\n% change from the first tax year of cohort:", perc,
+                        "\nYear over year percentage change:", perc_yy,
+                         "\n% of total B.C. residents of the same admssion group:",perc_share
+                          ))) +
+ geom_line(stat = "identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Years since landing",
+      y="2011 admission year", color="")+
+   scale_y_continuous(labels=scales::comma, breaks = seq(0, 45000, by =5000),  limits = c(0, 45000))+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_color_brewer(palette = "Dark2")
+
+
+b<-
+  
+  ggplot(imdb_reg %>% filter(statistics=="Total number of residents", pre_admission_experience=="Total, pre-admission experience", 
+                             immigrant_admission_category=="Total, immigrant admission category", admission_year=="2016"), 
+         aes(x=years_since, y=value, group=geo,
+                              color=geo,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date,
+                           "\nRegion:", geo,
+                          "\n% change from the first tax year of cohort:", perc,
+                        "\nYear over year percentage change:", perc_yy,
+                                                 "\n% of total B.C. residents of the same admssion group:",perc_share
+
+                        ))) +
+ geom_line(stat = "identity")+
+
+     scale_y_continuous(labels=scales::comma, breaks = seq(0, 45000, by =5000),  limits = c(0, 45000))+
+
+ scale_y_continuous(labels=scales::comma)+
+
+ labs( x="Tax year",
+      y="2011 admission year", color="")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_color_brewer(palette = "Dark2")
+
+
+
+
+ c<-
+  
+  ggplot(imdb_reg %>% filter(statistics=="Total number of residents", pre_admission_experience=="Total, pre-admission experience", 
+                             immigrant_admission_category=="Total, immigrant admission category", admission_year=="2020"), 
+         aes(x=years_since, y=value, group=geo,
+                              color=geo,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date, 
+                           "\nRegion:", geo,
+                          "\n% change from the first tax year of cohort:", perc,
+                        "\nYear over year percentage change:", perc_yy,
+                                                 "\n% of total B.C. residents of the same admssion group:",perc_share
+
+                          ))) +
+      scale_y_continuous(labels=scales::comma, breaks = seq(0, 45000, by =5000),  limits = c(0, 45000))+
+
+ geom_point(size=0.7, stat = "identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Years since landing",
+      y="2011 admission year", color="")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_color_brewer(palette = "Dark2")
+
+ subplot(style(ggplotly(a, tooltip = "text"), showlegend=FALSE) %>% 
+                    layout( xaxis = list(titlefont = list(size = 10), title="Years since landing-\nAdmission year 2011")),
+ style(ggplotly(b, tooltip="text"), showlegend=F) %>%      
+   layout( xaxis = list(titlefont = list(size = 10), title="Years since landing-\nAdmission year 2016")),
+ ggplotly(c) %>% 
+  layout(  xaxis = list(titlefont = list(size =9), title="Years since landing-\nAdmission year 2020")),
+         margin = 0.0001,shareX = TRUE, titleX = TRUE,  titleY=F, shareY=TRUE, widths = c(0.5,0.4, 0.1)) %>%  
+   plotly::layout(legend = list(font = list(size = 9), orientation='t', x=0.7, y=1))
+                
+
+```
+
+<br>
+<br>
+<br> 
+
+```{r table1, echo=FALSE, tab.cap= "Percentage of immigrant residents in BC in economic regions first year after their landing\\@ref(tab:table1)"}
+
+library(kableExtra)
+ imdb_reg_1<-
+ imdb_reg %>% 
+  filter(statistics=="Total number of residents", years_since==1, geo!="British Columbia") %>% 
+  select(admission_year, geo, perc_share) %>%
+   pivot_wider(names_from = geo, values_from=perc_share) %>% 
+  clean_names(.) %>% 
+  select(admission_year,lower_mainland_southwest_british_columbia, everything()) 
+ 
+ 
+imdb_reg_1$rest <-imdb_reg_1 %>% select(-admission_year) %>%  rowSums(.)
+imdb_reg_1$rest <-round(100-imdb_reg_1$rest,1)
+
+# label = "tab:table4"
+
+    # stargazer(imdb_reg_1, type="html", summary=FALSE, header=FALSE,rownames = FALSE,align =TRUE,
+    #           title="\\textbf{Table 1: Percentage of immigrant residents in B.C. in economic regions first year after their landing}",
+    #           covariate.labels = c("Admission Year", "Lower Mainland-Southwest","Vancouver Island and Coast","Thompson-Okanagan", "Remainder of B.C."), 
+    #           
+    #                  label="tab:table1"
+    #                  )
+    
+    kable(imdb_reg_1, style="html",col.names = c("Admission Year", "Lower Mainland-Southwest","Vancouver Island and Coast","Thompson-Okanagan", "Remainder of B.C."), format = "html", caption="<b>Percentage of immigrant residents in BC in economic regions first year after their landing</b>")%>% 
+  kable_styling(font_size = 18)
+```
+
+
+<br>
+<br>
+
+Total number of residents, admitted in 2011 and 2016 increased in the three most populated economic regions of B.C. as well as B.C. as a whole.
+
+Percentage of the tax-filing immigrants of B.C. residing in Lower Mainland in their 1st year after admission was between 87 and 88 for admission years 2011 to 2014. For admission years 2015 onwards, this percentage decreased to be between 84 and 86. For admission years 2011 to 2014, the share of the tax-filing immigrant residents residing in Thompson-Okanagan in their first year was between 3%-3.5%. Admission years 2015 onwards, this share increased to 4% and higher. The percentage of residents in Vancouver Island was around 6% for admission years 2011 to 2013, this percentage increased to be between 7 and 8 for the later admission years. Remainder of B.C. hosted a share of 3 to under 3.5% of tax filling immigrant residents in their first year after arrival for each admission year, with the exception of 2011 (2.4%) and 2017 (3.9%) admission years. For admission years 2012 to 2017 the share of immigrants in their first year residing in the remainder of B.C. followed a slowly increasing trend.
+
+<br> 
+<br> <br> 
+
+<br> <br> 
+
+### Median total income of immigrants in B.C by economic region 
+
+```{r plot19, echo=FALSE,   fig.cap="2021 Median total income of immigrants by economic region"}
+
+ a<-
+  
+  ggplot(imdb_reg %>% filter(statistics=="Median total income", pre_admission_experience=="Total, pre-admission experience", 
+                             immigrant_admission_category=="Total, immigrant admission category", admission_year=="2011",
+                             geo%in%c("Vancouver Island and Coast, British Columbia", "Lower Mainland--Southwest, British Columbia",
+                                      "Thompson--Okanagan, British Columbia")), 
+         aes(x=years_since, y=value, group=geo,
+                              color=geo,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date, 
+                           "\nRegion:", geo,
+                          "\n% change from the first tax year of cohort:", perc,
+                        "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_line(stat = "identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Years since landing",
+      y="2011 admission year", color="")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_color_brewer(palette = "Dark2")
+
+
+b<-
+  
+  ggplot(imdb_reg %>% filter(statistics=="Median total income", pre_admission_experience=="Total, pre-admission experience", 
+                             immigrant_admission_category=="Total, immigrant admission category", admission_year=="2016",
+                             geo%in%c("Vancouver Island and Coast, British Columbia", "Lower Mainland--Southwest, British Columbia",
+                                      "Thompson--Okanagan, British Columbia")), 
+         aes(x=years_since, y=value, group=geo,
+                              color=geo,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date,
+                           "\nRegion:", geo,
+                          "\n% change from the first tax year of cohort:", perc,
+                        "\nYear over year percentage change:", perc_yy
+                        ))) +
+ geom_line(stat = "identity")+
+
+  
+ scale_y_continuous(labels=scales::comma)+
+
+ labs( x="Tax year",
+      y="2011 admission year", color="")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_color_brewer(palette = "Dark2")
+
+
+
+
+ c<-
+  
+  ggplot(imdb_reg %>% filter(statistics=="Median total income", pre_admission_experience=="Total, pre-admission experience", 
+                             immigrant_admission_category=="Total, immigrant admission category", admission_year=="2020",
+                             geo%in%c("Vancouver Island and Coast, British Columbia", "Lower Mainland--Southwest, British Columbia",
+                                      "Thompson--Okanagan, British Columbia")), 
+         aes(x=years_since, y=value, group=geo,
+                              color=geo,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date, 
+                           "\nRegion:", geo,
+                          "\n% change from the first tax year of cohort:", perc,
+                        "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_point(size=0.6, stat = "identity")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Years since landing",
+      y="2011 admission year", color="")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_color_brewer(palette = "Dark2")
+
+ subplot(style(ggplotly(a, tooltip = "text"), showlegend=FALSE)%>% 
+                    layout( xaxis = list(titlefont = list(size = 10), title="Years since landing-\nAdmission year 2011")), 
+         ggplotly(b, tooltip="text")%>% 
+                    layout( xaxis = list(titlefont = list(size = 10), title="Years since landing-\nAdmission year 2016")),
+         style( ggplotly(c, tooltip="text"), showlegend=FALSE)%>% 
+                    layout( xaxis = list(titlefont = list(size = 10), title="Years since landing-\nAdmission year 2020")),
+         margin = 0.003,shareX = TRUE, titleX = TRUE,  titleY=F, shareY=TRUE, widths = c(0.45,0.4, 0.15)) %>%  
+   plotly::layout(legend = list(font = list(size = 8), orientation='t', x=0.65, y=1.1))
+
+
+ 
+```
+
+
+<br> <br> 
+
+For immigrant admitted in 2020, the entry median income was 41,400, 41,500 and 41,700 for Vancouver Island and Coast, Lower Mainland-Southwest and Thompson-Okanagan respectively. In 2020, first year income of immigrants in all three economic regions were closer to each other compared to the first year median incomes of 2011 and 2016 cohorts. For 2011 and 2016 cohorts, the 1st year, as well as the 5th and 10th year median total income was the lowest in the Lower Mainland, followed by Vancouver Island and Thompson-Okanagan. 
+
+<br> <br> 
+<br> <br> 
+<br> <br> 
+
+# IMDB statistics by socio-demographic characteristics
+Source:^[Statistics Canada. Table 43-10-0027-01  Income of Immigrant taxfilers, by socio-demographic profile and tax year, 2021 constant dollars]
+
+
+## Median income and citizenship intake of immigrants by age category
+<br>
+
+###  Median total income
+
+```{r plot20, echo=FALSE,   fig.cap="2021 Median total income of immigrants by age group for admission years: 2011, 2016 and 2020"}
+
+ a<-
+  
+  ggplot(imdb_age %>% filter(statistics=="Median total income",
+                             immigrant_admission_category=="Total, immigrant admission category",
+                             ref_date=="2021",
+                             profile!="Total, tax age groups",
+                             admission_year%in%c("2011", "2016", "2020")), 
+         aes(x=profile, y=value, group=admission_year,
+                               fill=admission_year,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date
+                        #   "\n% change from the first tax year of cohort:", perc,
+                        # "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_bar(stat = "identity", position="dodge")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Median total income",
+      y="", fill="Admission year")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 9), 
+        legend.text = element_text(size = 9))+
+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_fill_brewer(palette = "Dark2")
+
+ggplotly(a, tooltip="text")
+
+```
+
+<br> <br> 
+For younger age groups of 15-24 and 25-34, immigrants admitted more recently have a higher median total income than those admitted in the previous admission years; whereas for age group 35-44 and higher immigrants admitted earlier have a higher median total income. The majority of immigrants in the younger age groups admitted 5 and 10 years before the 2021 tax year were likely too young at the time of their admission to be admitted as economic immigrants and were likely admitted alongside their families. Being partially financially supported by their families and not being economic immigrant principal applicants may be the reasons for these immigrants not earning as much as their peers admitted more recently.
+
+For admission years 2011 and 2016, the median total income was the highest for 35-44 year-olds; whereas for 2020 admission year, it was the highest for 25-34 year-olds. The first year incomes of 25-34 year-old have consistently been the highest with the exception of 2011 and 2015 admission years. Whilst 35 to 44 year-olds are expected to have more work experience compared to the 25-34 year-old group, newly admitted 35-44 year-olds having a lower income compared to the younger group may suggest that their foreign work experiences are not recognized and valued equivalently. However, the age composition of different admission categories may be a contributing factor to this observation.
+
+
+<br> <br> <br> <br> 
+
+### Total number of residents
+
+```{r plot21, echo=FALSE,   fig.cap="Number of immigrant tax-filler residents in 2021 admitted in 2020 by admission category and age group"}
+
+a<-
+  
+  ggplot(imdb_age %>% filter(statistics=="Total number of residents",
+                             ref_date=="2021",admission_year=="2020",
+                             profile!="Total, tax age groups",
+                             immigrant_admission_category!="Total, immigrant admission category"), 
+         aes(x=immigrant_admission_category, y=value, group=profile,
+                               fill=profile,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date
+                        #   "\n% change from the first tax year of cohort:", perc,
+                        # "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_bar(stat = "identity", position="dodge")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="",
+      y="Total number of residents", fill="")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 9), 
+        legend.text = element_text(size = 9),
+                    axis.text.x = element_text(size=7,angle=20))+
+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_fill_brewer(palette = "Dark2")
+
+ggplotly(a, tooltip="text") %>% layout(legend= list(font = list(size = 10)))
+
+
+```
+
+<br> <br> 
+
+In 2021, the majority of all immigrant residents and the majority of economic immigrants admitted in 2020 were in the 25 to 34 age group. This was true for previous admission years in the first year after landing. The proportion of economic immigrants to the total number of immigrants was the highest for the 25 to 34 year-olds.  
+
+<br> <br> <br> <br> 
+
+<br> <br>
+```{r plot22, echo=FALSE,   fig.cap="Number of economic immigrant tax-filler residents in their first year after landing for 2011, 2016 and 2020 admission cohorts"}
+
+a<-
+  
+  ggplot(imdb_age %>% filter(statistics=="Total number of residents",
+                             years_since==1,
+                             profile!="Total, tax age groups",
+                             immigrant_admission_category=="Economic Immigrant, principal applicant"), 
+         aes(x=admission_year, y=value, group=profile,
+                               fill=profile,
+               text=paste("\nValue:", formatC(value, format="d", big.mark=","), 
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date,
+                          "\nProportion in all economic immigrants:", prop2*100
+                        #   "\n% change from the first tax year of cohort:", perc,
+                        # "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_bar(stat = "identity", position="dodge")+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Admission year",
+      y="Total number of residents", fill="Age profile")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 9), 
+        legend.text = element_text(size = 9))+
+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_fill_brewer(palette = "Dark2")
+
+ggplotly(a, tooltip="text") %>% layout(legend= list(font = list(size = 10)))
+
+```
+<br>
+<br>
+
+The age composition of economic immigrants in their 1st year after landing was significantly different for admission years 2011, 2016 and 2020. The age profile of economic immigrants has been getting younger. The proportion of 25-34 year-olds in all economic immigrants have been increasing over the years; whereas the proportion of older economic immigrants have been declining. For admission cohort 2011, the first year after landing, the number of economic immigrant residents who were in the age group 25-34 and 35-44 was almost equal. The share of 25 to 34 year-olds in the total number of economic immigrants in the first year after landing was 38% for 2011 admission cohort. After steadily increasing for each admission cohort, the share of this age group rose to 67% for 2020 admission cohort.  
+<br>
+<br>
+<br>
+<br>
+
+###  Citizenship intake rate by age category
+
+
+```{r plot23, echo=FALSE,   fig.cap="Citizenship intake rate of immigrants admitted in 2011 and 2016 by age category"}
+imdb_age$immigrant_admission_category<-imdb_age$immigrant_admission_category %>% as.factor() %>% fct_rev(.)
+
+a<-
+
+  ggplot(imdb_age %>% filter(statistics=="Citizenship intake rate",
+                             immigrant_admission_category!="Total, immigrant admission category",
+                             immigrant_admission_category!="Other immigrants",
+                             ref_date=="2021",
+                             profile!="Total, tax age groups",
+                             admission_year%in%c("2011")),
+         aes(x=immigrant_admission_category, y=value, group=profile,
+                               fill=profile,
+               text=paste("\nValue:", value, 
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date
+                        #   "\n% change from the first tax year of cohort:", perc,
+                        # "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_col(position = position_dodge2(width = 2, preserve = "single", padding=0.02))+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="",
+      y="Citizenship intake rate", fill="")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7),
+ legend.text = element_text(size = 7),
+        axis.text.x = element_text(size=7,angle=20))+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_fill_brewer(palette = "Dark2")
+
+
+
+b<-
+
+  ggplot(imdb_age %>% filter(statistics=="Citizenship intake rate",
+                             immigrant_admission_category!="Total, immigrant admission category",
+                                                          immigrant_admission_category!="Other immigrants",
+
+                             ref_date=="2021",
+                             profile!="Total, tax age groups",
+                             admission_year%in%c("2016")),
+         aes(x=immigrant_admission_category, y=value, group=profile,
+                               fill=profile,
+               text=paste("\nValue:", value,
+                                          "\nAdmission year", admission_year, "\nTax Year:", ref_date
+                        #   "\n% change from the first tax year of cohort:", perc,
+                        # "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_col(position = position_dodge2(width = 2, preserve = "single", padding=0.02))+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="",
+      y="Citizenship intake rate", fill="")+
+
+  theme_minimal()+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7),
+        
+        legend.text = element_text(size = 7),
+        axis.text.x = element_text(size=7,angle=20))+
+
+  
+   guides(color=guide_legend(nrow=3, byrow=TRUE))+
+  scale_fill_brewer(palette = "Dark2")
+
+
+subplot(style(ggplotly(a, tooltip = "text"), showlegend=FALSE)%>% 
+                    layout( xaxis = list(titlefont = list(size = 11), title="Admission year 2011")), 
+         ggplotly(b, tooltip="text")%>% 
+                    layout( xaxis = list(titlefont = list(size = 11), title="Admission year 2016")),
+         
+         margin = 0.01,shareX = F, titleX = TRUE,  titleY=F, shareY=TRUE) %>%  
+   plotly::layout(legend = list(font = list(size = 10), orientation='h',y=-0.32),
+                  yaxis=list(font=list(size=9)))
+```
+<br> <br> 
+
+The citizenship intake rate was the highest for refugees for both admission years and for all age groups. 
+
+For immigrants admitted 10 years prior to the 2021 tax year, for all admission categories with the exception of refugees, the citizenship intake rate was higher the younger the age category.
+
+<br> <br> <br> <br> 
+<br> <br>
+<br> <br>
+
+
+## Median income and citizenship intake of immigrants by country of origin
+
+
+###  Citizenship intake rate by age country of origin
+
+
+```{r plot24, echo=FALSE,   fig.cap="Citizenship intake rate of immigrants by country of origin and admission category"}
+
+imdb_orig1<-imdb_orig %>% filter(statistics=="Total number of residents",ref_date=="2021",admission_year%in%c("2011"), value>=500) 
+imdb_orig2<- imdb_orig %>% filter(profile%in%imdb_orig1$profile)
+
+imdb_orig2_1<-imdb_orig2 %>% filter(admission_year==2011, ref_date==2021) %>% select(-uom,-uom_id) %>% 
+     pivot_wider(names_from = statistics, values_from=value, id_cols = c(immigrant_admission_category, profile, admission_year, ref_date)) %>% clean_names(.) %>% 
+   filter(total_number_of_residents>50)
+
+a<-
+ ggplot(imdb_orig2_1 %>% filter(immigrant_admission_category!="Total, immigrant admission category",
+                          !str_detect(profile,"Total")),
+                             
+         aes(x=profile, y=citizenship_intake_rate, group=immigrant_admission_category,
+                               fill=immigrant_admission_category,
+               text=paste("\nValue:", citizenship_intake_rate, 
+                                                    "\nNumber of residents:", total_number_of_residents,
+                           "\nAdmission year:", admission_year,
+                          "\nTax year:", ref_date
+
+
+                        #   "\n% change from the first tax year of cohort:", perc,
+                        # "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_col(position = position_dodge2(width = 2, preserve = "single", padding=0.02))+
+  scale_y_continuous(labels=scales::comma)+
+ labs( x="Years since landing",
+      y="2011 admission year", fill="")+
+
+  theme_minimal()+
+  scale_fill_brewer(palette = "Dark2")+
+  # geom_hline(aes(yintercept=42060, text="Provincial median: 42,060"), color="blue")+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7),
+        axis.text.x = element_text(size=7,angle=40))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))
+
+
+
+imdb_orig5<-imdb_orig %>% filter(statistics=="Total number of residents",ref_date=="2021",admission_year%in%c("2016"), value>=500) 
+imdb_orig6<- imdb_orig %>% filter(profile%in%imdb_orig5$profile)
+
+imdb_orig6_1<-imdb_orig6 %>% filter(admission_year==2016, ref_date==2021) %>% select(-uom,-uom_id) %>% 
+     pivot_wider(names_from = statistics, values_from=value, id_cols = c(immigrant_admission_category, profile, admission_year, ref_date)) %>% clean_names(.) %>% 
+   filter(total_number_of_residents>50)
+
+b<-
+ ggplot(imdb_orig6_1 %>% filter(immigrant_admission_category!="Total, immigrant admission category",
+                          !str_detect(profile,"Total")),
+                             
+         aes(x=profile, y=citizenship_intake_rate, group=immigrant_admission_category,
+                               fill=immigrant_admission_category,
+               text=paste("\nValue:", citizenship_intake_rate, 
+                          "\nNumber of residents:", total_number_of_residents,
+                           "\nAdmission year:", admission_year,
+                          "\nTax year:", ref_date
+
+                        #   "\n% change from the first tax year of cohort:", perc,
+                        # "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_col(position = position_dodge2(width = 2, preserve = "single", padding=0.02))+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="Years since landing",
+      y="2011 admission year", fill="")+
+
+  theme_minimal()+
+  scale_fill_brewer(palette = "Dark2")+
+  # geom_hline(aes(yintercept=42060, text="Provincial median: 42,060"), color="blue")+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7),
+        axis.text.x = element_text(size=7,angle=40))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))
+
+# ggplotly(b) %>%  
+#    plotly::layout(legend = list(font = list(size = 8), orientation='t', x=0.65, y=1.1))
+
+
+subplot(style(ggplotly(a, tooltip = "text"), showlegend=FALSE)%>% 
+                    layout( xaxis = list(titlefont = list(size = 11), title="Admission year 2011")), 
+         ggplotly(b, tooltip="text")%>% 
+                    layout( xaxis = list(titlefont = list(size = 11), title="Admission year 2016")),
+         
+         margin = 0.01,shareX = F, titleX = TRUE,  titleY=F, shareY=TRUE) %>%  
+   plotly::layout(legend = list(font = list(size = 9), orientation='h',y=1),
+                  yaxis=list(font=list(size=9)))
+
+```
+
+
+<br> <br> 
+Immigrants sponsored by family had the lowest naturalization rates for both 2011 and 2016 admission years, for all countries of origin with the exceptions of Iran for 2011 admission year and Philippines for 2016 admission year.
+
+Immigrants from Iran have the highest citizenship intake rates for both admission years and all admission categories. Immigrants from China had the lowest citizenship intake rate for the 2011 admission cohort for all immigration admission categories, and for the 2016 admission cohort with the exception of immigrants sponsored by family who originated in South Korea. The low citizenship intake rate amongst Chinese nationals is expected since PRC does not recognize dual nationality and requires the renouncing of Chinese citizenship when a new citizenship is obtained. Whilst Iran does not recognize dual nationality, it does not require the renouncing of Iranian citizenship.
+
+<br> <br> <br> <br> 
+<br> <br>
+
+
+###  Median total income by country of origin
+
+
+```{r plot25, echo=FALSE}
+
+d<-
+ ggplot(imdb_orig2_1 %>% filter(
+                                 immigrant_admission_category!="Total, immigrant admission category",                         
+
+                             !str_detect(profile,"Total")),
+         aes(x=profile, y=median_total_income, 
+             group=immigrant_admission_category,
+                               fill=immigrant_admission_category,
+               text=paste("\nValue:", formatC(median_total_income, format="d", big.mark=","),
+                                                    "\nNumber of residents:", total_number_of_residents,
+                           "\nAdmission year:", admission_year,
+                          "\nTax year:", ref_date
+
+                        #   "\n% change from the first tax year of cohort:", perc,
+                        # "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_col(position = position_dodge2(width = 2, preserve = "single", padding=0.02))+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="",
+      y="", fill="")+
+
+  theme_minimal()+
+  scale_fill_brewer(palette = "Dark2")+
+  # geom_hline(aes(yintercept=42060, text="Provincial median: 42,060"), color="blue")+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7),
+        axis.text.x = element_text(size=7,angle=40),
+        axis.text.y = element_text(size=6))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))
+
+
+
+
+e<-
+ ggplot(imdb_orig6_1 %>% filter(
+                                                           immigrant_admission_category!="Total, immigrant admission category",
+
+                             !str_detect(profile,"Total")), 
+         aes(x=profile, y=median_total_income, group=immigrant_admission_category,
+                               fill=immigrant_admission_category,
+               text=paste("\nValue:", formatC(median_total_income, format="d", big.mark=","),
+                                                    "\nNumber of residents:", total_number_of_residents,
+                          "\nAdmission year:", admission_year,
+                          "\nTax year:", ref_date
+
+
+                        #   "\n% change from the first tax year of cohort:", perc,
+                        # "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_col(position = position_dodge2(width = 2, preserve = "single", padding=0.02))+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="",
+      y="", fill="")+
+
+  theme_minimal()+
+  scale_fill_brewer(palette = "Dark2")+
+  # geom_hline(aes(yintercept=42060, text="Provincial median: 42,060"), color="blue")+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7),
+axis.text.x = element_text(size=7,angle=40),
+        axis.text.y = element_text(size=6))+
+  guides(color=guide_legend(nrow=3, byrow=TRUE))
+
+ subplot(style(ggplotly(d, tooltip = "text"), showlegend=FALSE)%>% 
+                    layout( xaxis = list(titlefont = list(size = 11), title="Admission year 2011")), 
+         ggplotly(e, tooltip="text")%>% 
+                    layout( xaxis = list(titlefont = list(size = 11), title="Admission year 2016")),
+         # style(ggplotly(f, tooltip = "text"), showlegend=FALSE)%>%
+         #            layout( xaxis = list(titlefont = list(size = 11), title="Admission year 2020")),
+         
+         margin = 0.01,shareX = F, titleX = TRUE,  titleY=F, shareY=TRUE) %>%  
+   plotly::layout(legend = list(font = list(size = 9), orientation='h', y=1.05),
+                  yaxis=list(font=list(size=3)))
+ 
+```
+ 
+```{r plot26, echo=FALSE, fig.cap="2021 Median total income of immigrants by origin country and admission category"}
+
+imdb_orig7<-imdb_orig %>% filter(statistics=="Total number of residents",ref_date=="2021",admission_year%in%c("2020"), value>=500) 
+imdb_orig8<- imdb_orig %>% filter(profile%in%imdb_orig7$profile)
+
+imdb_orig8_1<-imdb_orig8%>% filter(admission_year==2020, ref_date==2021) %>% select(-uom,-uom_id) %>% 
+     pivot_wider(names_from = statistics, values_from=value, id_cols = c(immigrant_admission_category, profile, ref_date,admission_year)) %>% clean_names(.) %>% 
+   filter(total_number_of_residents>50)
+
+f<-
+ ggplot(imdb_orig8_1 %>% filter(
+                                                           immigrant_admission_category!="Total, immigrant admission category",
+
+                             !str_detect(profile,"Total")), 
+         aes(x=profile, y=median_total_income, group=immigrant_admission_category,
+                               fill=immigrant_admission_category,
+               text=paste("\nValue:", formatC(median_total_income, format="d", big.mark=","),
+                                                    "\nNumber of residents:", total_number_of_residents,
+                          "\nAdmission year:", admission_year,
+                          "\nTax year:", ref_date
+
+                        #   "\n% change from the first tax year of cohort:", perc,
+                        # "\nYear over year percentage change:", perc_yy
+                          ))) +
+ geom_col(position = position_dodge2(width = 2, preserve = "single", padding=0.02))+
+ scale_y_continuous(labels=scales::comma)+
+ labs( x="",
+      y="", fill="")+
+
+  theme_minimal()+
+  scale_fill_brewer(palette = "Dark2")+
+  # geom_hline(aes(yintercept=42060, text="Provincial median: 42,060"), color="blue")+
+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 7),
+        axis.text.x = element_text(size=7,angle=30),
+        axis.text.y = element_text(size=6))+
+   guides(color=guide_legend(nrow=3, byrow=TRUE))
+
+
+
+# s2<-subplot(style(ggplotly(f, tooltip = "text"), showlegend=FALSE)%>%
+#                      layout( xaxis = list(titlefont = list(size = 11), title="Admission year 2020")), widths=c(0.5))
+# subplot(s,s2, nrows=2 )
+
+ 
+ ggplotly(f, tooltip="text")  %>%  
+   plotly::layout(legend = list(font = list(size = 9), orientation='h', y=1.1),  
+                  xaxis = list(titlefont = list(size = 11), title="Admission year 2020"))
+```
+
+<br> <br> 
+China, India, Iran, Philippines, South Korea, United Kingdom and United States are amongst the countries of origin that B.C. was hosting the most tax-filing immigrants from (over 500 immigrants each for each admission year) in 2021. Mexico was replaced by Syria for 2016 admission year and by Brazil for 2020 admission year as the other country of origin of more than 500 immigrants residing in B.C. in 2021. 
+
+The highest earning economic immigrants in 2021 originated from the USA, followed by the UK for all admission years. The median total income of economic immigrants originating from Brazil admitted in 2020 (\$69,600) followed the median total income of economic immigrants originating from the UK the same year (\$70,700) closely. Economic immigrants originating from China and South Korea had the lowest median total income amongst economic immigrants.
+
+For all three admission years, the lowest earning immigrants from each of these countries of origin were the spouses and dependents of economic immigrants and immigrants sponsored by family. For the admission year 2020, immigrants sponsored by family earned less than the spouses and dependents of economic immigrants, with the exception of immigrants whose country of origin was South Korea.
+
+Immigrants sponsored by family whose country origin was China earned the least amongst immigrants admitted under this category whereas those originating from the UK earned the most for all three admission years. 
+<br> <br>
+<br> <br>
+<br> <br>
+
+# Notes and References
+
+If you have any questions about this report please contact Erhan Baydar (erhan.baydar@gov.bc.ca) and Asli Gurer McNeilage (asli.gurermcneilage@gov.bc.ca). 
+
+### Notes
+
+Income values are shown in 2021 constant dollars. Values zero and one are not included in medians.
+
+Total income includes the taxfiler’s income from taxable sources (for example, all market incomes such as employment earnings) as well as non-taxable sources (for example, government transfers such as social assistance or child benefits).
+
+Incidence is the proportion of immigrant taxfilers with this type of income.
+
+The total number of residents represents the number of immigrant taxfilers residing in the specified geography on December 31st of the corresponding tax year.
+
+Example calculation of income % change since the first tax year of the cohort, for admission year 2018 when the year of interest is 2021:
+
+% change since the first tax year of the cohort = (Median income 2021-Median income 2019)/Median income 2019*100
+
+
+### Technical guide for interactive graphs
+One click on any legend category hides the category from the graph and double click on the same category brings it back to display. 
+
+Double click on any legend category selects only that category to be displayed on the graph. All categories are brought back to display with double clicking again on this category. 
+
+Clicking on an area of a graph and dragging the mouse zooms into the selected area of the graph. 
+
+Hovering over the graphs provides more detailed information on the data points.
+
+
+### Table references
