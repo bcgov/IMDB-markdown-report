@@ -91,8 +91,8 @@ capTab = function(x){
 ```{r setup, include=FALSE}
 
 
-download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002901&latestN=0&startDate=20120101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B75%2C76%2C77%2C78%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%5D%5D&checkedLevels=1D1%2C2D1%2C3D1%2C5D1", "data/imdb_reg.csv")
-imdb_reg <- read_csv("data/imdb_reg.csv")%>%  clean_names() %>% 
+download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002901&latestN=0&startDate=20120101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B75%2C76%2C77%2C78%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%5D%5D&checkedLevels=1D1%2C2D1%2C3D1%2C5D1", "imdb_reg.csv")
+imdb_reg <- read_csv("imdb_reg.csv")%>%  clean_names() %>% 
   mutate(admission_year=str_remove(admission_year, ", admission year"),
          years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
          years_since=factor(years_since,
@@ -100,8 +100,8 @@ imdb_reg <- read_csv("data/imdb_reg.csv")%>%  clean_names() %>%
          ref_date=as.character(ref_date)) %>% 
   filter(sex=="Total, sex", ref_date>=2012) 
 
- download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002701&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B5%2C7%2C8%2C9%2C10%5D%2C%5B1%2C2%2C9%5D%5D&checkedLevels=1D1%2C2D1%2C2D2", "data/imdb_age.csv")
-imdb_age <- read_csv("data/imdb_age.csv")%>%  clean_names() %>% 
+ download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002701&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B5%2C7%2C8%2C9%2C10%5D%2C%5B1%2C2%2C9%5D%5D&checkedLevels=1D1%2C2D1%2C2D2", "imdb_age.csv")
+imdb_age <- read_csv("imdb_age.csv")%>%  clean_names() %>% 
   mutate(admission_year=str_remove(admission_year, ", admission year"),
          years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
          years_since=factor(years_since,
@@ -109,8 +109,8 @@ imdb_age <- read_csv("data/imdb_age.csv")%>%  clean_names() %>%
          ref_date=as.character(ref_date)) %>% 
   filter(ref_date>=2012) 
 
- download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002701&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B17%2C18%2C19%2C20%2C21%2C22%2C23%2C24%2C25%2C26%2C27%2C28%2C29%2C30%2C31%2C32%2C33%2C34%2C35%2C36%2C37%2C38%2C39%2C40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49%2C50%2C51%5D%2C%5B1%2C2%2C9%5D%5D&checkedLevels=1D1%2C2D1%2C2D2", "data/imdb_orig.csv")
-imdb_orig <- read_csv("data/imdb_orig.csv")%>%  clean_names() %>% 
+ download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002701&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B17%2C18%2C19%2C20%2C21%2C22%2C23%2C24%2C25%2C26%2C27%2C28%2C29%2C30%2C31%2C32%2C33%2C34%2C35%2C36%2C37%2C38%2C39%2C40%2C41%2C42%2C43%2C44%2C45%2C46%2C47%2C48%2C49%2C50%2C51%5D%2C%5B1%2C2%2C9%5D%5D&checkedLevels=1D1%2C2D1%2C2D2", "imdb_orig.csv")
+imdb_orig <- read_csv("imdb_orig.csv")%>%  clean_names() %>% 
   mutate(admission_year=str_remove(admission_year, ", admission year"),
          years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
          years_since=factor(years_since,
@@ -119,8 +119,8 @@ imdb_orig <- read_csv("data/imdb_orig.csv")%>%  clean_names() %>%
   filter(ref_date>=2012) 
 
 
- download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002601&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%2C6%5D%5D&checkedLevels=1D1%2C2D1%2C2D2%2C3D1%2C5D1", "data/imdb_exp.csv")
- imdb_exp <- read_csv("data/imdb_exp.csv")%>%  clean_names() %>% 
+ download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002601&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%2C6%5D%5D&checkedLevels=1D1%2C2D1%2C2D2%2C3D1%2C5D1", "imdb_exp.csv")
+ imdb_exp <- read_csv("imdb_exp.csv")%>%  clean_names() %>% 
   mutate(admission_year=str_remove(admission_year, ", admission year"),
          years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
          years_since=factor(years_since,
@@ -130,9 +130,9 @@ imdb_orig <- read_csv("data/imdb_orig.csv")%>%  clean_names() %>%
 
 
 
-download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002601&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%2C6%5D%5D&checkedLevels=0D1%2C1D1%2C1D2%2C2D1%2C3D1%2C5D1%2C5D2","data/imdb_cat.csv")
+download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002601&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%2C6%5D%5D&checkedLevels=0D1%2C1D1%2C1D2%2C2D1%2C3D1%2C5D1%2C5D2","imdb_cat.csv")
 
-imdb_cat_s <- read_csv("data/imdb_cat.csv")%>%  
+imdb_cat_s <- read_csv("imdb_cat.csv")%>%  
  clean_names() %>% 
   mutate(admission_year=str_remove(admission_year, ", admission year"),
          years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
@@ -144,8 +144,8 @@ imdb_cat_s <- read_csv("data/imdb_cat.csv")%>%
 imdb_cat<-imdb_cat_s %>% filter(sex=="Total, sex")
 
 download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002601&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B%5D%2C%5B1%2C2%2C6%5D%5D&checkedLevels=0D1%2C1D1%2C2D1%2C3D1%2C5D1%2C5D2",
-               "data/imdb_cat.csv")
-imdb_cat_can <- read_csv("data/imdb_cat.csv")%>%  
+               "imdb_cat.csv")
+imdb_cat_can <- read_csv("imdb_cat.csv")%>%  
  clean_names() %>% 
   mutate(admission_year=str_remove(admission_year, ", admission year"),
          years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
@@ -155,8 +155,8 @@ imdb_cat_can <- read_csv("data/imdb_cat.csv")%>%
   filter(sex=="Total, sex", ref_date>=2012)
 
  download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002601&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B11%5D%2C%5B%5D%2C%5B%5D%2C%5B%5D%2C%5B4%2C5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%5D%2C%5B7%2C8%2C9%2C10%2C11%5D%2C%5B1%2C2%2C6%5D%5D&checkedLevels=1D1%2C2D1%2C3D1",
-               "data/imdb_cat_econ.csv")
-imdb_cat_econ <- read_csv("data/imdb_cat_econ.csv")%>%  
+               "imdb_cat_econ.csv")
+imdb_cat_econ <- read_csv("imdb_cat_econ.csv")%>%  
  clean_names()%>% 
   mutate(admission_year=str_remove(admission_year, ", admission year"),
          years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),
@@ -165,8 +165,8 @@ imdb_cat_econ <- read_csv("data/imdb_cat_econ.csv")%>%
          ref_date=as.character(ref_date)) %>% 
   filter(sex=="Total, sex", ref_date>=2012)
 
- download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002201&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B7%2C8%2C13%2C21%2C39%2C42%2C46%2C51%2C52%2C53%2C54%2C55%2C56%5D%2C%5B1%5D%2C%5B%5D%2C%5B%5D%2C%5B5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%2C14%2C15%5D%2C%5B%5D%2C%5B5%5D%5D&checkedLevels=2D1%2C3D1%2C5D1%2C5D2","data/imdb_ret.csv")
-imdb_ret <- read_csv("data/imdb_ret.csv")%>%  
+ download.file("https://www150.statcan.gc.ca/t1/tbl1/en/dtl!downloadDbLoadingData.action?pid=4310002201&latestN=0&startDate=20110101&endDate=20210101&csvLocale=en&selectedMembers=%5B%5B7%2C8%2C13%2C21%2C39%2C42%2C46%2C51%2C52%2C53%2C54%2C55%2C56%5D%2C%5B1%5D%2C%5B%5D%2C%5B%5D%2C%5B5%2C6%2C7%2C8%2C9%2C10%2C11%2C12%2C13%2C14%2C15%5D%2C%5B%5D%2C%5B5%5D%5D&checkedLevels=2D1%2C3D1%2C5D1%2C5D2","imdb_ret.csv")
+imdb_ret <- read_csv("imdb_ret.csv")%>%  
  clean_names()%>% 
   mutate(admission_year=str_remove(admission_year, ", admission year"),
          years_since=ifelse(as.numeric(ref_date)-as.numeric(admission_year)>=0,as.character(as.numeric(ref_date)-as.numeric(admission_year)),NA),

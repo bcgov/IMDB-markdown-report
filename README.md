@@ -12,13 +12,6 @@ Longitidunal Immigration Database (IMDB) 2021 Report
 
 After creating a folder for the downloaded csv files, running the rmd file will source the open data and download it into the folder "data".
 
-#### Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-## basic example code
-```
 
 ### Project Status
 
