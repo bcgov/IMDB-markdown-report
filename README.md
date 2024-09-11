@@ -10,7 +10,7 @@ Longitidunal Immigration Database (IMDB) 2021 Report
 
 ### Usage
 
-After creating a folder for the downloaded csv files, running the rmd file will source the open data and download it into the folder "data".
+Running the rmd file will source the open data and download it into the folder "data". Knitting the file will create the html report.
 
 
 ### Project Status
